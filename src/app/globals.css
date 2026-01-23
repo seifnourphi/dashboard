@@ -1,0 +1,170 @@
+/* Admin Dashboard Styles */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 222.2 84% 4.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 222.2 84% 4.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222.2 84% 4.9%;
+        --primary: 43 72% 45%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 210 40% 96.1%;
+        --secondary-foreground: 222.2 47.4% 11.2%;
+        --muted: 210 40% 96.1%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+        --accent: 210 40% 96.1%;
+        --accent-foreground: 222.2 47.4% 11.2%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --ring: 43 72% 45%;
+        --radius: 0.5rem;
+    }
+
+    html {
+        font-family: "Open Sans", "Noto Sans Arabic", system-ui, sans-serif;
+    }
+
+    * {
+        border-color: hsl(var(--border));
+    }
+
+    body {
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-family: "Open Sans", "Noto Sans Arabic", system-ui, sans-serif;
+    }
+
+    [dir="rtl"] {
+        text-align: right;
+    }
+
+    [dir="ltr"] {
+        text-align: left;
+    }
+}
+
+@layer components {
+    .input {
+        @apply flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+        border-color: hsl(var(--input));
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        --tw-ring-color: hsl(var(--ring));
+    }
+
+    .input::placeholder {
+        color: hsl(var(--muted-foreground));
+    }
+
+    .btn-primary {
+        background-color: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+        @apply hover:opacity-90 px-4 py-2 rounded-md font-medium transition-all;
+    }
+
+    .card {
+        background-color: hsl(var(--card));
+        color: hsl(var(--card-foreground));
+        @apply rounded-lg border shadow-sm;
+    }
+
+    /* Admin Sidebar Styles */
+    .admin-sidebar {
+        @apply bg-gray-900 text-white min-h-screen w-64 fixed top-0 z-40 transform transition-transform duration-300 ease-in-out border-gray-800;
+    }
+
+    .admin-sidebar-ltr {
+        @apply left-0 border-r;
+    }
+
+    .admin-sidebar-rtl {
+        @apply right-0 border-l;
+    }
+
+    .admin-content {
+        @apply min-h-screen bg-gray-50 transition-all duration-300;
+    }
+
+    [dir="ltr"] .admin-content {
+        @apply ml-64;
+    }
+
+    [dir="rtl"] .admin-content {
+        @apply mr-64;
+    }
+
+    @media (max-width: 768px) {
+        .admin-sidebar-ltr {
+            @apply -translate-x-full;
+        }
+
+        .admin-sidebar-rtl {
+            @apply translate-x-full;
+        }
+
+        .admin-sidebar.open {
+            @apply translate-x-0 !important;
+        }
+
+        .admin-content,
+        [dir="ltr"] .admin-content,
+        [dir="rtl"] .admin-content {
+            @apply ml-0 mr-0;
+        }
+    }
+}
+
+/* Animations */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+}
