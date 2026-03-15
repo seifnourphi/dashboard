@@ -1,0 +1,16 @@
+services:
+  dashboard:
+    container_name: ridaa-dashboard
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - BACKEND_URL=http://host.docker.internal:5001
+      - NEXT_PUBLIC_API_URL=http://localhost:3001/api
+      - NEXT_PUBLIC_APP_NAME=Ridaa Admin
+    # Allows the container to access the backend running on the host machine at localhost:5001
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
