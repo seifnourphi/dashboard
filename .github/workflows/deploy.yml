@@ -1,0 +1,72 @@
+name: Deploy Dashboard
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set environment specific variables
+        id: vars
+        run: |
+          if [ "${{ github.ref_name }}" = "master" ]; then
+            echo "DEPLOY_PATH=/var/www/ridaa-dashboard-master" >> $GITHUB_OUTPUT
+            echo "CONTAINER_NAME=ridaa-dashboard-prod" >> $GITHUB_OUTPUT
+            echo "PORT=3002" >> $GITHUB_OUTPUT
+            echo "BACKEND_PORT=5002" >> $GITHUB_OUTPUT
+          else
+            echo "DEPLOY_PATH=/var/www/ridaa-dashboard-staging" >> $GITHUB_OUTPUT
+            echo "CONTAINER_NAME=ridaa-dashboard-staging" >> $GITHUB_OUTPUT
+            echo "PORT=3001" >> $GITHUB_OUTPUT
+            echo "BACKEND_PORT=5001" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Copy files via SSH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "."
+          target: ${{ steps.vars.outputs.DEPLOY_PATH }}
+          rm: true
+          exclude: "node_modules,.git,.github,.env,.next"
+
+      - name: SSH into server and deploy
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          ENV_FILE: ${{ github.ref_name == 'master' && secrets.DASHBOARD_MASTER_ENV_FILE || secrets.DASHBOARD_STAGING_ENV_FILE }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: ENV_FILE
+          script: |
+            set -e
+            DEPLOY_PATH="${{ steps.vars.outputs.DEPLOY_PATH }}"
+            CONTAINER_NAME="${{ steps.vars.outputs.CONTAINER_NAME }}"
+            PORT="${{ steps.vars.outputs.PORT }}"
+            BACKEND_PORT="${{ steps.vars.outputs.BACKEND_PORT }}"
+
+            cd "$DEPLOY_PATH"
+
+            # Write env file from secret
+            printf "%s" "$ENV_FILE" > .env
+
+            # Generate docker-compose override
+            printf "services:\n  dashboard:\n    container_name: %s\n    ports:\n      - \"%s:3001\"\n    environment:\n      - BACKEND_URL=http://46.101.209.18:%s\n      - NEXT_PUBLIC_API_URL=http://46.101.209.18:%s/api\n      - NEXT_PUBLIC_APP_NAME=Ridaa Admin\n" \
+              "$CONTAINER_NAME" "$PORT" "$BACKEND_PORT" "$BACKEND_PORT" \
+              > docker-compose.override.yml
+
+            # Stop and remove old containers cleanly
+            /usr/local/bin/docker-compose -f docker-compose.yml -f docker-compose.override.yml down --remove-orphans || true
+
+            # Start fresh
+            /usr/local/bin/docker-compose -f docker-compose.yml -f docker-compose.override.yml up --build -d
