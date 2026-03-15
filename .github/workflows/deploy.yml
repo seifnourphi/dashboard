@@ -57,13 +57,28 @@ jobs:
 
             cd "$DEPLOY_PATH"
 
-            # Write env file from secret
-            printf "%s" "$ENV_FILE" > .env
+            # Write env file safely
+            cat > .env << 'ENV_EOF'
+${{ env.ENV_FILE }}
+ENV_EOF
 
-            # Generate docker-compose override
-            printf "services:\n  dashboard:\n    container_name: %s\n    ports:\n      - \"%s:3001\"\n    environment:\n      - BACKEND_URL=http://46.101.209.18:%s\n      - NEXT_PUBLIC_API_URL=http://46.101.209.18:%s/api\n      - NEXT_PUBLIC_APP_NAME=Ridaa Admin\n" \
-              "$CONTAINER_NAME" "$PORT" "$BACKEND_PORT" "$BACKEND_PORT" \
-              > docker-compose.override.yml
+            # Generate docker-compose override (Must be strictly left-aligned for valid YAML)
+            cat > docker-compose.override.yml << OVERRIDE_EOF
+services:
+  dashboard:
+    container_name: $CONTAINER_NAME
+    build:
+      context: .
+      args:
+        BACKEND_URL: http://46.101.209.18:$BACKEND_PORT
+        NEXT_PUBLIC_API_URL: http://46.101.209.18:$BACKEND_PORT/api
+    ports:
+      - "$PORT:3001"
+    environment:
+      - BACKEND_URL=http://46.101.209.18:$BACKEND_PORT
+      - NEXT_PUBLIC_API_URL=http://46.101.209.18:$BACKEND_PORT/api
+      - NEXT_PUBLIC_APP_NAME=Ridaa Admin
+OVERRIDE_EOF
 
             # Stop and remove old containers cleanly
             /usr/local/bin/docker-compose -f docker-compose.yml -f docker-compose.override.yml down --remove-orphans || true
