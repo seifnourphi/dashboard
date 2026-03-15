@@ -19,7 +19,7 @@ jobs:
           if [ "${{ github.ref_name }}" = "master" ]; then
             echo "DEPLOY_PATH=/var/www/ridaa-dashboard-master" >> $GITHUB_OUTPUT
             echo "CONTAINER_NAME=ridaa-dashboard-prod" >> $GITHUB_OUTPUT
-            echo "PORT=3002" >> $GITHUB_OUTPUT
+            echo "PORT=3003" >> $GITHUB_OUTPUT
             echo "BACKEND_PORT=5002" >> $GITHUB_OUTPUT
           else
             echo "DEPLOY_PATH=/var/www/ridaa-dashboard-staging" >> $GITHUB_OUTPUT
